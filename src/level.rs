@@ -1,3 +1,4 @@
+use ncurses::*;
 use std::fs::File;
 use std::io::Result;
 use std::io::{BufRead, BufReader};
@@ -23,5 +24,11 @@ impl Level {
 
     pub fn get_data(&self) -> &[String] {
         &self.data
+    }
+
+    pub fn draw_map(&self) {
+        for (y, line) in self.data.iter().enumerate() {
+            mvaddstr(y as i32, 0, line);
+        }
     }
 }

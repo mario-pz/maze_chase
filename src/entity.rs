@@ -1,3 +1,5 @@
+use ncurses::*;
+
 #[allow(dead_code)]
 pub struct Entity {
     position: (i32, i32),
@@ -22,15 +24,25 @@ impl Entity {
         &self.character
     }
 
-    fn render(&self) {}
+    fn render(&self) {
+        mvaddch(self.position.1, self.position.0, self.character as chtype);
+    }
 
-    pub fn move_up(&self) {}
+    pub fn move_up(&mut self) {
+        self.position.1 -= 1;
+    }
 
-    pub fn move_left(&self) {}
+    pub fn move_left(&mut self) {
+        self.position.0 -= 1;
+    }
 
-    pub fn move_down(&self) {}
+    pub fn move_down(&mut self) {
+        self.position.1 += 1;
+    }
 
-    pub fn move_right(&self) {}
+    pub fn move_right(&mut self) {
+        self.position.0 += 1;
+    }
 
     pub fn update(&mut self) {
         self.render()
