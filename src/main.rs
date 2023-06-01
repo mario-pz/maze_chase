@@ -19,9 +19,6 @@ fn main() {
         std::process::exit(1);
     });
 
-    let data = level.get_data();
-    println!("{:?}", data);
-
     let mut loukas = Entity::new((1, 1), 'L');
     let mut malph = Entity::new((4, 1), 'M');
 

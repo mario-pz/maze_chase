@@ -22,9 +22,11 @@ impl Level {
         Ok(Level { data })
     }
 
-    pub fn get_data(&self) -> &[String] {
-        &self.data
-    }
+    /*
+    *   pub fn get_data(&self) -> &[String] {
+            &self.data
+        }
+    */
 
     pub fn draw_map(&self) {
         for (y, line) in self.data.iter().enumerate() {
