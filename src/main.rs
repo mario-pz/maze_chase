@@ -6,6 +6,8 @@ use entity::Entity;
 
 use ncurses::*;
 
+use rand::Rng;
+
 fn main() {
     // Initialize ncurses
     initscr();
@@ -19,17 +21,20 @@ fn main() {
         std::process::exit(1);
     });
 
+    let mut malph = Entity::new((16, 23), 'M', &level);
     let mut loukas = Entity::new((1, 1), 'L', &level);
-    let mut malph = Entity::new((4, 1), 'M', &level);
+    let mut diamond = Entity::new((10, 13), 'G', &level);
 
     let mut filled_area = flood_fill(
         &level,
         loukas.get_pos(),
-        malph.get_pos(),
+        diamond.get_pos(),
         level.get_wall_char(),
     );
 
     let mut steps = 0;
+    let mut rng = rand::thread_rng();
+    let random_num: i32 = rng.gen_range(0..10);
 
     loop {
         clear();
@@ -38,10 +43,7 @@ fn main() {
         level.draw_map();
         loukas.update();
         malph.update();
-
-        if steps % 6 == 0 {
-            filled_area = flood_fill(&level, loukas.get_pos(), malph.get_pos(), '*');
-        }
+        diamond.update();
 
         let key = getch();
         match key {
@@ -56,9 +58,24 @@ fn main() {
             _ => (),
         }
 
-        let index = steps % filled_area.len(); // Calculate the wrapped index
-        loukas.move_to(filled_area[index]);
-        steps = steps.wrapping_add(1); // Use wrapping_add to prevent overflow
+        if random_num == steps {
+            loop {
+                let rand_x = rng.gen_range(0..20);
+                let rand_y = rng.gen_range(0..20);
+                if diamond.can_move((rand_y, rand_x)) {
+                    diamond.move_to((rand_y, rand_x));
+                    filled_area = flood_fill(
+                        &level,
+                        loukas.get_pos(),
+                        diamond.get_pos(),
+                        level.get_wall_char(),
+                    );
+                    break;
+                }
+            }
+        }
+        loukas.move_to(filled_area[steps as usize]);
+        steps += 1;
     }
 
     // Cleanup ncurses

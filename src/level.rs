@@ -23,6 +23,22 @@ impl Level {
         Ok(Level { data, wall_char })
     }
 
+    pub fn is_valid_position(&self, pos: (i32, i32)) -> bool {
+        let (y, x) = pos;
+        y >= 0 && y < self.data.len() as i32 && x >= 0 && x < self.data[y as usize].len() as i32
+    }
+
+    pub fn is_wall(&self, pos: (i32, i32)) -> bool {
+        let (y, x) = pos;
+        if self.is_valid_position(pos) {
+            let row = &self.data[y as usize];
+            let ch = row.chars().nth(x as usize).unwrap();
+            ch == self.wall_char
+        } else {
+            false
+        }
+    }
+
     pub fn get_map(&self) -> &Vec<String> {
         &self.data
     }
@@ -31,15 +47,11 @@ impl Level {
         self.wall_char
     }
 
-    pub fn get_map_size(&self) -> (usize, usize) {
-        (self.data.len(), self.data[0].len())
-    }
-
     pub fn draw_map(&self) {
         for (y, line) in self.data.iter().enumerate() {
             for (x, ch) in line.chars().enumerate() {
                 let block_ch = if ch == self.wall_char {
-                    'X' as chtype
+                    '😀' as chtype
                 } else {
                     ch as chtype
                 };
@@ -56,55 +68,49 @@ pub fn flood_fill(
     end: (i32, i32),
     ignore_wall: char,
 ) -> Vec<(i32, i32)> {
-    let mut result: Vec<(i32, i32)> = Vec::new();
-    let mut visited: Vec<Vec<bool>> =
-        vec![vec![false; level.get_map_size().1]; level.get_map_size().0];
+    let mut filled_area = Vec::new();
+    let mut visited = vec![vec![false; level.data[0].len()]; level.data.len()];
 
-    fill(
+    flood_fill_recursive(
         level,
-        start.0,
-        start.1,
-        end.0,
-        end.1,
+        start,
+        end,
         ignore_wall,
-        &mut result,
+        &mut filled_area,
         &mut visited,
     );
 
-    result
+    filled_area
 }
 
-fn fill(
+fn flood_fill_recursive(
     level: &Level,
-    x: i32,
-    y: i32,
-    end_x: i32,
-    end_y: i32,
+    pos: (i32, i32),
+    end: (i32, i32),
     ignore_wall: char,
-    result: &mut Vec<(i32, i32)>,
+    filled_area: &mut Vec<(i32, i32)>,
     visited: &mut Vec<Vec<bool>>,
 ) {
-    if x < 0 || y < 0 || x >= level.get_map_size().0 as i32 || y >= level.get_map_size().1 as i32 {
+    let (y, x) = pos;
+
+    if !level.is_valid_position(pos) || visited[y as usize][x as usize] {
         return;
     }
 
-    if visited[x as usize][y as usize] {
+    visited[y as usize][x as usize] = true;
+
+    if level.is_wall(pos) && level.wall_char != ignore_wall {
         return;
     }
 
-    visited[x as usize][y as usize] = true;
+    filled_area.push(pos);
 
-    if level.data[x as usize].chars().nth(y as usize) != Some(ignore_wall) {
-        result.push((x, y));
-    }
-
-    if x == end_x && y == end_y {
+    if pos == end {
         return;
     }
 
-    // Check neighbors (up, down, left, right)
-    fill(level, x - 1, y, end_x, end_y, ignore_wall, result, visited);
-    fill(level, x + 1, y, end_x, end_y, ignore_wall, result, visited);
-    fill(level, x, y - 1, end_x, end_y, ignore_wall, result, visited);
-    fill(level, x, y + 1, end_x, end_y, ignore_wall, result, visited);
+    flood_fill_recursive(level, (y - 1, x), end, ignore_wall, filled_area, visited);
+    flood_fill_recursive(level, (y + 1, x), end, ignore_wall, filled_area, visited);
+    flood_fill_recursive(level, (y, x - 1), end, ignore_wall, filled_area, visited);
+    flood_fill_recursive(level, (y, x + 1), end, ignore_wall, filled_area, visited);
 }
